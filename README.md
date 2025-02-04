@@ -30,3 +30,6 @@ Go to `/set_api_key`, enter your OpenAI API key, and save it.
 - Enter **Job Description**, **Resume Info**.
 - Prompt is set by default, but can be modified by the user.
 - Click **"Generate Cover Letter"** to get a customized cover letter.
+
+### Screenshot:
+![homepage_screenshot.png](homepage_screenshot.png)
