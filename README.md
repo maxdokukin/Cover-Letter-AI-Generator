@@ -1,4 +1,4 @@
-# CoverLetter-AI-Generator
+# Cover-Letter-AI-Generator
 
 A simple Flask-based web application that generates cover letters using OpenAI’s GPT API.
 
