@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Cover Letter Generator</title>
+</head>
+<body>
+    <h1>Cover Letter Generator</h1>
+    <!-- Display flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+         <ul>
+         {% for category, message in messages %}
+             <li style="color: {% if category == 'error' %}red{% else %}green{% endif %};">
+                 {{ message }}
+             </li>
+         {% endfor %}
+         </ul>
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="/">
+        <div>
+            <label for="job_description">Job Description:</label><br>
+            <textarea id="job_description" name="job_description" rows="6" cols="60">{{ data.job_description }}</textarea>
+        </div>
+        <br>
+        <div>
+            <label for="relevant_info">Relevant Info (Resume Text):</label><br>
+            <textarea id="relevant_info" name="relevant_info" rows="6" cols="60">{{ data.relevant_info }}</textarea>
+        </div>
+        <br>
+        <div>
+            <label for="prompt">Prompt:</label><br>
+            <textarea id="prompt" name="prompt" rows="4" cols="60">{{ data.prompt }}</textarea>
+        </div>
+        <br>
+        <div>
+            <button type="submit" name="generate">Generate Cover Letter</button>
+        </div>
+    </form>
+
+    <br>
+    <div>
+        <h2>Generated Cover Letter</h2>
+        <textarea readonly rows="10" cols="60">{{ data.cover_letter }}</textarea>
+    </div>
+
+    <br>
+    <div>
+        <p>Set your API key <a href="{{ url_for('set_api_key') }}">here</a>.</p>
+    </div>
+</body>
+</html>

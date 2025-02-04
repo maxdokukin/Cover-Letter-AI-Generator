@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Set API Key</title>
+</head>
+<body>
+    <h1>Set API Key</h1>
+    <!-- Display flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+         <ul>
+         {% for category, message in messages %}
+             <li style="color: {% if category == 'error' %}red{% else %}green{% endif %};">
+                 {{ message }}
+             </li>
+         {% endfor %}
+         </ul>
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="/set_api_key">
+        <div>
+            <label for="api_key">API Key:</label><br>
+            <input type="text" id="api_key" name="api_key" size="60" value="{{ data.api_key }}">
+        </div>
+        <br>
+        <div>
+            <button type="submit">Save API Key</button>
+        </div>
+    </form>
+
+    <br>
+    <p>Back to the <a href="{{ url_for('index') }}">Cover Letter Generator</a></p>
+</body>
+</html>
