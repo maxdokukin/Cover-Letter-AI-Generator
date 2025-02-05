@@ -17,7 +17,7 @@ data_storage = {
     "prompt": "",
     "cover_letter": "",
     "api_key": "",
-    "model": "chatgpt-4o-latest"  # You can change this as needed
+    "model": "gpt-4o-mini"  # You can change this as needed
 }
 
 @app.route("/", methods=["GET", "POST"])
@@ -29,6 +29,9 @@ def index():
 
     if request.method == "POST":
         # Update stored fields from form inputs
+        print(f'POST request to OpenAI, using model {data_storage["model"]}')
+
+        prompt = data_storage["prompt"]
         data_storage["job_description"] = request.form.get("job_description", "")
         data_storage["relevant_info"] = request.form.get("relevant_info", "")
         data_storage["prompt"] = request.form.get("prompt", "")
@@ -49,10 +52,12 @@ def index():
                     # Create the client with the API key
                     client = OpenAI(api_key=data_storage["api_key"])
                     # Call the chat completions endpoint using your working example pattern
+
+                    master_role = "user" if data_storage["model"] == "o1-mini" else "system"
                     completion = client.chat.completions.create(
                         model=data_storage["model"],
                         messages=[
-                            {"role": "system", "content": "You are a helpful writer that writes brilliant and brief cover letters."},
+                            {"role": master_role, "content": "You are a helpful writer that writes brilliant and brief cover letters."},
                             {"role": "user", "content": prompt_text}
                         ]
                     )
@@ -64,7 +69,7 @@ def index():
                         f"Job Description:\n{data_storage['job_description']}\n\n"
                     )
                     completion = client.chat.completions.create(
-                        model=data_storage["model"],
+                        model="gpt-4o-mini",
                         messages=[
                             {"role": "system",
                              "content": "You are a data extractor."},
@@ -85,18 +90,16 @@ def set_api_key():
     global data_storage
     if request.method == "POST":
         api_key = request.form.get("api_key", "")
+        selected_model = request.form.get("model", "")
         if api_key:
             data_storage["api_key"] = api_key
-            flash("API key updated successfully.", "success")
+            if selected_model:
+                data_storage["model"] = selected_model
+            flash("API key and model updated successfully.", "success")
             return redirect(url_for("index"))
         else:
             flash("Please enter a valid API key.", "error")
     return render_template("set_api_key.html", data=data_storage)
-
-
-from io import BytesIO
-from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
 
 
 def wrap_text(text, pdf, font_name, font_size, max_width):
