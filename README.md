@@ -7,6 +7,7 @@ A simple Flask-based web application that generates cover letters using OpenAIâ€
 - Generates a professional cover letter using OpenAIâ€™s GPT model.
 - Stores inputs in memory for convenience.
 - Allows setting an **API Key** via a separate page.
+- **Automatically generates and downloads a PDF** of the cover letter after generation.
 
 ## Setup & Usage
 
@@ -30,6 +31,7 @@ Go to `/set_api_key`, enter your OpenAI API key, and save it.
 - Enter **Job Description**, **Resume Info**.
 - Prompt is set by default, but can be modified by the user.
 - Click **"Generate Cover Letter"** to get a customized cover letter.
+- **The cover letter is automatically saved as a PDF and downloaded.**
 
 ### Screenshot:
 ![homepage_screenshot.png](homepage_screenshot.png)
