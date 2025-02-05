@@ -7,9 +7,6 @@ WORKDIR /app
 # Copy the application and data
 COPY . /app
 
-# Copy database directory if required
-COPY data /app/data
-
 # Install any required Python packages
 RUN pip install --no-cache-dir -r requirements.txt
 
