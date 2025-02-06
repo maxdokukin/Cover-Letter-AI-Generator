@@ -1,21 +1,28 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session, send_file
 from openai import OpenAI  # Use the client class as shown in your example
 import os
+import uuid
 from datetime import date
 from io import BytesIO
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
 app = Flask(__name__)
-app.secret_key = os.urandom(24)  # Ensure this is set securely in production
+app.secret_key = os.urandom(24)
 
-def get_user_data():
+# Global in-memory storage for user session data.
+# Keys are session IDs and values are dictionaries containing user-specific data.
+user_sessions = {}
+
+def get_current_user_data():
     """
-    Retrieves the current user's data from the session.
-    If not present, initializes the data with default values.
+    Retrieves or creates the data storage for the current user session.
     """
-    if "data_storage" not in session:
-        session["data_storage"] = {
+    if 'session_id' not in session:
+        session['session_id'] = str(uuid.uuid4())
+    sid = session['session_id']
+    if sid not in user_sessions:
+        user_sessions[sid] = {
             "job_description": "",
             "relevant_info": "",
             "prompt": "",
@@ -24,33 +31,29 @@ def get_user_data():
             "model": "gpt-4o-mini",  # Default model; change as needed
             "company_name": ""
         }
-    return session["data_storage"]
-
-def update_user_data(data):
-    """Updates the session with the provided user data."""
-    session["data_storage"] = data
-    session.modified = True
+    return user_sessions[sid]
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    user_data = get_user_data()
+    user_data = get_current_user_data()
 
-    # Load default prompt from file if not already set
-    if not user_data.get("prompt"):
+    # Read default prompt only if not already set
+    if not user_data["prompt"]:
         with open("default_prompt.txt") as f:
             user_data["prompt"] = f.read()
-        update_user_data(user_data)
 
     if request.method == "POST":
+        # Update stored fields from form inputs
         print(f'POST request to OpenAI, using model {user_data["model"]}')
         user_data["job_description"] = request.form.get("job_description", "")
         user_data["relevant_info"] = request.form.get("relevant_info", "")
-        user_data["prompt"] = request.form.get("prompt", "")
+        user_data["prompt"] = request.form.get("prompt", user_data["prompt"])
 
         if "generate" in request.form:
             if not user_data["api_key"]:
                 flash("API key is not set. Please set it at /set_api_key.", "error")
             else:
+                # Construct the full prompt
                 prompt_text = (
                     f"Generate a cover letter using the following information.\n\n"
                     f"Job Description:\n{user_data['job_description']}\n\n"
@@ -59,6 +62,7 @@ def index():
                     f"current_date: {date.today()}"
                 )
                 try:
+                    # Create the client with the API key
                     client = OpenAI(api_key=user_data["api_key"])
                     master_role = "user" if user_data["model"] == "o1-mini" else "system"
                     completion = client.chat.completions.create(
@@ -71,7 +75,8 @@ def index():
                     cover_letter = completion.choices[0].message.content.strip()
                     user_data["cover_letter"] = cover_letter
 
-                    prompt_text_company = (
+                    # Extract the company name from the job description
+                    extraction_prompt = (
                         "YOU MUST EXTRACT AND RETURN COMPANY NAME FROM THE JOB DESCRIPTION BELOW. YOUR ANSWER MUST ONLY CONTAIN THE COMPANY NAME.\n\n"
                         f"Job Description:\n{user_data['job_description']}\n\n"
                     )
@@ -79,21 +84,20 @@ def index():
                         model="gpt-4o-mini",
                         messages=[
                             {"role": "system", "content": "You are a data extractor."},
-                            {"role": "user", "content": prompt_text_company}
+                            {"role": "user", "content": extraction_prompt}
                         ]
                     )
                     user_data["company_name"] = completion.choices[0].message.content.strip()
-                    update_user_data(user_data)
+
                     return redirect(url_for("download_pdf"))
                 except Exception as e:
                     flash(f"Error generating cover letter: {e}", "error")
 
-        update_user_data(user_data)
     return render_template("index.html", data=user_data)
 
 @app.route("/set_api_key", methods=["GET", "POST"])
 def set_api_key():
-    user_data = get_user_data()
+    user_data = get_current_user_data()
     if request.method == "POST":
         api_key = request.form.get("api_key", "")
         selected_model = request.form.get("model", "")
@@ -102,11 +106,9 @@ def set_api_key():
             if selected_model:
                 user_data["model"] = selected_model
             flash("API key and model updated successfully.", "success")
-            update_user_data(user_data)
             return redirect(url_for("index"))
         else:
             flash("Please enter a valid API key.", "error")
-    update_user_data(user_data)
     return render_template("set_api_key.html", data=user_data)
 
 def wrap_text(text, pdf, font_name, font_size, max_width):
@@ -141,12 +143,13 @@ def save_pdf(text):
     font_size = 12
     pdf.setFont(font_name, font_size)
 
-    margin = 72  # One inch margin (1 inch = 72 points)
+    margin = 72
     width, height = letter
     usable_width = width - 2 * margin
-    line_height = 14  # Slightly more than 12pt for readability
+    line_height = 14
 
     lines = wrap_text(text, pdf, font_name, font_size, usable_width)
+
     y = height - margin
     for line in lines:
         if y < margin:
@@ -162,14 +165,14 @@ def save_pdf(text):
 
 @app.route("/download_pdf")
 def download_pdf():
-    user_data = get_user_data()
+    user_data = get_current_user_data()
     cover_letter = user_data.get("cover_letter", "")
     if not cover_letter:
         flash("No cover letter available to download.", "error")
         return redirect(url_for("index"))
 
     pdf_buffer = save_pdf(cover_letter)
-    company_name = user_data.get("company_name", "Company")
+    company_name = user_data.get("company_name", "Unknown Company")
     return send_file(
         pdf_buffer,
         as_attachment=True,
