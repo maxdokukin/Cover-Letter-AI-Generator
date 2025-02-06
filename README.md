@@ -6,7 +6,7 @@ https://cover-letter-ai-generator-329494799718.us-central1.run.app
 
 ## You need your own OpenAI API Key! 
 - Generate new API key (https://platform.openai.com/api-keys)
-- Add mode to the balance (as low as $5)
+- Add money to the balance (as low as $5)
 
 ## Features
 - Accepts **Job Description**, **Resume Info**, and **Custom Prompt** as input.
