@@ -1,58 +1,101 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Cover Letter Generator</title>
+  <meta charset="UTF-8">
+  <title>Cover Letter Generator</title>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      // Populate hidden API key and model fields from localStorage.
+      var apiKey = localStorage.getItem('api_key') || "";
+      var model = localStorage.getItem('model') || "gpt-4o-mini";
+      document.getElementById('api_key_field').value = apiKey;
+      document.getElementById('model_field').value = model;
+
+      // Retrieve and populate job description and relevant info from localStorage.
+      var jobDescription = localStorage.getItem('job_description') || "";
+      var relevantInfo = localStorage.getItem('relevant_info') || "";
+      document.getElementById('job_description').value = jobDescription;
+      document.getElementById('relevant_info').value = relevantInfo;
+
+      // Save job description to localStorage on input.
+      document.getElementById('job_description').addEventListener("input", function() {
+        localStorage.setItem('job_description', this.value);
+      });
+
+      // Save relevant info to localStorage on input.
+      document.getElementById('relevant_info').addEventListener("input", function() {
+        localStorage.setItem('relevant_info', this.value);
+      });
+
+      // If a cover letter has been generated, automatically submit the download form.
+      {% if data.cover_letter %}
+        document.getElementById("downloadForm").submit();
+      {% endif %}
+    });
+  </script>
 </head>
 <body>
-    <h1>Cover Letter Generator</h1>
-    <!-- Display flash messages -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-         <ul>
-         {% for category, message in messages %}
-             <li style="color: {% if category == 'error' %}red{% else %}green{% endif %};">
-                 {{ message }}
-             </li>
-         {% endfor %}
-         </ul>
-      {% endif %}
-    {% endwith %}
+  <h1>Cover Letter Generator</h1>
+  <!-- Display flash messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <ul>
+      {% for category, message in messages %}
+        <li style="color: {% if category == 'error' %}red{% else %}green{% endif %};">
+          {{ message }}
+        </li>
+      {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
 
-    <form method="POST" action="/">
-        <div>
-            <label for="job_description">Job Description:</label><br>
-            <textarea id="job_description" name="job_description" rows="6" cols="60">{{ data.job_description }}</textarea>
-        </div>
-        <br>
-        <div>
-            <label for="relevant_info">Relevant Info (Resume Text):</label><br>
-            <textarea id="relevant_info" name="relevant_info" rows="6" cols="60">{{ data.relevant_info }}</textarea>
-        </div>
-        <br>
-        <div>
-            <label for="prompt">Prompt:</label><br>
-            <textarea id="prompt" name="prompt" rows="4" cols="60">{{ data.prompt }}</textarea>
-        </div>
-        <br>
-        <div>
-            <button type="submit" name="generate">Generate Cover Letter</button>
-        </div>
+  <form method="POST" action="/">
+    <div>
+      <label for="job_description">Job Description:</label><br>
+      <textarea id="job_description" name="job_description" rows="6" cols="60"></textarea>
+    </div>
+    <br>
+    <div>
+      <label for="relevant_info">Relevant Info (Resume Text):</label><br>
+      <textarea id="relevant_info" name="relevant_info" rows="6" cols="60"></textarea>
+    </div>
+    <br>
+    <div>
+      <label for="prompt">Prompt:</label><br>
+      <textarea id="prompt" name="prompt" rows="4" cols="60">{{ data.prompt }}</textarea>
+    </div>
+    <br>
+    <!-- Hidden fields for API key and model (populated from localStorage) -->
+    <input type="hidden" id="api_key_field" name="api_key" value="">
+    <input type="hidden" id="model_field" name="model" value="">
+    <div>
+      <button type="submit" name="generate">Generate Cover Letter</button>
+    </div>
+
+    <!-- Display generated cover letter below the submit button if available -->
+    {% if data.cover_letter %}
+    <div style="margin-top: 20px;">
+      <label for="generated_cover_letter">Generated Cover Letter:</label><br>
+      <textarea id="generated_cover_letter" name="generated_cover_letter" rows="10" cols="60" readonly>{{ data.cover_letter }}</textarea>
+    </div>
+    {% endif %}
+  </form>
+
+  {% if data.cover_letter %}
+    <!-- Hidden form that auto-submits to download the PDF -->
+    <form method="POST" action="{{ url_for('download_pdf') }}" id="downloadForm">
+      <input type="hidden" name="cover_letter" value="{{ data.cover_letter }}">
+      <input type="hidden" name="company_name" value="{{ data.company_name }}">
     </form>
+  {% endif %}
 
-    <br>
-    <div>
-        <h2>Generated Cover Letter</h2>
-        <textarea readonly rows="10" cols="60">{{ data.cover_letter }}</textarea>
-    </div>
+  <br>
+  <div>
+    <p>Set your API key <a href="{{ url_for('set_api_key') }}">here</a>.</p>
+  </div>
 
-    <br>
-    <div>
-        <p>Set your API key <a href="{{ url_for('set_api_key') }}">here</a>.</p>
-    </div>
-
-    <a href="https://github.com/maxdokukin/Cover-Letter-AI-Generator">
-      Project Github Repo
-    </a>
+  <a href="https://github.com/maxdokukin/Cover-Letter-AI-Generator">
+    Project Github Repo
+  </a>
 </body>
 </html>

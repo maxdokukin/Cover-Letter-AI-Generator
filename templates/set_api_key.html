@@ -3,23 +3,34 @@
 <head>
   <meta charset="UTF-8">
   <title>Set API Key and Model</title>
+  <script>
+    function saveApiKeyAndModel(event) {
+      event.preventDefault();
+      var apiKey = document.getElementById('api_key').value;
+      var model = document.querySelector('input[name="model"]:checked').value;
+      localStorage.setItem('api_key', apiKey);
+      localStorage.setItem('model', model);
+      alert("API key and model saved locally.");
+      window.location.href = "/";
+    }
+  </script>
 </head>
 <body>
   <h1>Set API Key and Model</h1>
-  <form method="POST">
+  <form onsubmit="saveApiKeyAndModel(event)">
     <div>
       <label for="api_key">API Key:</label>
-      <input type="text" id="api_key" name="api_key" value="{{ data.api_key }}">
+      <input type="text" id="api_key" name="api_key">
     </div>
     <div>
       <p>Select Model:</p>
-      <input type="radio" id="gpt-4o" name="model" value="gpt-4o" {% if data.model == 'gpt-4o' %}checked{% endif %}>
+      <input type="radio" id="gpt-4o" name="model" value="gpt-4o" checked>
       <label for="gpt-4o">gpt-4o ---------- ($2.50/1M tokens)</label><br>
-      
-      <input type="radio" id="gpt-4o-mini" name="model" value="gpt-4o-mini" {% if data.model == 'gpt-4o-mini' %}checked{% endif %}>
+
+      <input type="radio" id="gpt-4o-mini" name="model" value="gpt-4o-mini">
       <label for="gpt-4o-mini">gpt-4o-mini --- ($0.15/1M tokens)</label><br>
-      
-      <input type="radio" id="o1-mini" name="model" value="o1-mini" {% if data.model == 'o1-mini' %}checked{% endif %}>
+
+      <input type="radio" id="o1-mini" name="model" value="o1-mini">
       <label for="o1-mini">o1-mini -------- ($1.10/1M tokens)</label><br>
     </div>
     <button type="submit">Update API Key and Model</button>
