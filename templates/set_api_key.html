@@ -2,38 +2,75 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Set API Key and Model</title>
+  <title>Set API Key, Model, and Timezone</title>
   <script>
-    function saveApiKeyAndModel(event) {
+    function loadSettings() {
+      var apiKey = localStorage.getItem('api_key');
+      if (apiKey) {
+        document.getElementById('api_key').value = apiKey;
+      }
+
+      var model = localStorage.getItem('model');
+      if (model) {
+        var radios = document.getElementsByName('model');
+        for (var i = 0; i < radios.length; i++) {
+          if (radios[i].value === model) {
+            radios[i].checked = true;
+            break;
+          }
+        }
+      }
+
+      var timezone = localStorage.getItem('timezone');
+      if (timezone) {
+        document.getElementById('timezone').value = timezone;
+      }
+    }
+
+    window.onload = loadSettings;
+
+    function saveSettings(event) {
       event.preventDefault();
       var apiKey = document.getElementById('api_key').value;
       var model = document.querySelector('input[name="model"]:checked').value;
+      var timezone = document.getElementById('timezone').value;
       localStorage.setItem('api_key', apiKey);
       localStorage.setItem('model', model);
-      alert("API key and model saved locally.");
+      localStorage.setItem('timezone', timezone);
+      alert("Settings saved locally.");
       window.location.href = "/";
     }
   </script>
 </head>
 <body>
-  <h1>Set API Key and Model</h1>
-  <form onsubmit="saveApiKeyAndModel(event)">
+  <h1>Set API Key, Model, and Timezone</h1>
+  <form onsubmit="saveSettings(event)">
     <div>
       <label for="api_key">API Key:</label>
       <input type="text" id="api_key" name="api_key">
     </div>
     <div>
       <p>Select Model:</p>
-      <input type="radio" id="gpt-4o" name="model" value="gpt-4o" checked>
+      <input type="radio" id="gpt-4o" name="model" value="gpt-4o">
       <label for="gpt-4o">gpt-4o ---------- ($2.50/1M tokens)</label><br>
-
       <input type="radio" id="gpt-4o-mini" name="model" value="gpt-4o-mini">
       <label for="gpt-4o-mini">gpt-4o-mini --- ($0.15/1M tokens)</label><br>
-
       <input type="radio" id="o1-mini" name="model" value="o1-mini">
       <label for="o1-mini">o1-mini -------- ($1.10/1M tokens)</label><br>
     </div>
-    <button type="submit">Update API Key and Model</button>
+    <br>
+    <div>
+      <label for="timezone">Select Timezone:</label>
+      <select id="timezone" name="timezone">
+        <option value="America/Los_Angeles">PST (America/Los_Angeles)</option>
+        <option value="America/New_York">EST (America/New_York)</option>
+        <option value="Europe/London">GMT (Europe/London)</option>
+        <option value="Asia/Tokyo">JST (Asia/Tokyo)</option>
+        <!-- Add more options as needed -->
+      </select>
+    </div>
+    <br>
+    <button type="submit">Update Settings</button>
   </form>
 </body>
 </html>

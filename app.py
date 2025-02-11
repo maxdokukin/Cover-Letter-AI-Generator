@@ -1,7 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, send_file
 from openai import OpenAI  # Use the client class as shown in your example
 import os
-from datetime import date
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from io import BytesIO
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
@@ -26,7 +27,8 @@ def index():
         "cover_letter": "",
         "api_key": "",
         "model": "gpt-4o-mini",
-        "company_name": ""
+        "company_name": "",
+        "timezone": "America/Los_Angeles"  # default timezone
     }
     if request.method == "POST":
         # All data is coming from the client (populated via localStorage)
@@ -35,18 +37,20 @@ def index():
         data["prompt"] = request.form.get("prompt", data["prompt"])
         data["api_key"] = request.form.get("api_key", "")
         data["model"] = request.form.get("model", "gpt-4o-mini")
+        data["timezone"] = request.form.get("timezone", "America/Los_Angeles")
 
         if "generate" in request.form:
             if not data["api_key"]:
                 flash("API key is not set. Please set it in the API Key section.", "error")
             else:
-                # Build full prompt text
+                # Use the selected timezone to get the current date
+                current_date = datetime.now(ZoneInfo(data["timezone"])).date()
                 prompt_text = (
                     f"Generate a cover letter using the following information.\n\n"
                     f"Job Description:\n{data['job_description']}\n\n"
                     f"User Relevant Info:\n{data['relevant_info']}\n\n"
                     f"Prompt:\n{data['prompt']}\n"
-                    f"current_date: {date.today()}"
+                    f"current_date: {current_date}"
                 )
                 try:
                     client = OpenAI(api_key=data["api_key"])
@@ -77,6 +81,7 @@ def index():
                 except Exception as e:
                     flash(f"Error generating cover letter: {e}", "error")
     return render_template("index.html", data=data)
+
 
 @app.route("/download_pdf", methods=["POST"])
 def download_pdf():

@@ -11,6 +11,10 @@
       document.getElementById('api_key_field').value = apiKey;
       document.getElementById('model_field').value = model;
 
+      // Populate hidden timezone field from localStorage.
+      var timezone = localStorage.getItem('timezone') || "America/Los_Angeles";
+      document.getElementById('timezone_field').value = timezone;
+
       // Retrieve and populate job description and relevant info from localStorage.
       var jobDescription = localStorage.getItem('job_description') || "";
       var relevantInfo = localStorage.getItem('relevant_info') || "";
@@ -65,9 +69,10 @@
       <textarea id="prompt" name="prompt" rows="4" cols="60">{{ data.prompt }}</textarea>
     </div>
     <br>
-    <!-- Hidden fields for API key and model (populated from localStorage) -->
+    <!-- Hidden fields for API key, model, and timezone (populated from localStorage) -->
     <input type="hidden" id="api_key_field" name="api_key" value="">
     <input type="hidden" id="model_field" name="model" value="">
+    <input type="hidden" id="timezone_field" name="timezone" value="">
     <div>
       <button type="submit" name="generate">Generate Cover Letter</button>
     </div>
